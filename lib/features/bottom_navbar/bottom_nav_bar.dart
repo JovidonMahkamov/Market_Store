@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:market_store/features/add/presentation/add_page.dart';
 import 'package:market_store/features/bottom_navbar/nav_item_wg.dart';
-import 'package:market_store/features/chat/presentation/chat_page.dart';
 import 'package:market_store/features/home/presentation/pages/home_page.dart';
 import 'package:market_store/features/profile/presentation/pages/profile_page.dart';
+import '../chat/presentation/pages/chat_page.dart';
 
 class BottomNavBarPage extends StatefulWidget {
   final int initialIndex;
