@@ -74,7 +74,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     children:  [
                       SizedBox(width: 12.w
                         ,),
-                      Icon(Icons.done_all, color: AppColors.darkGrey, size: 20),
+                      Icon(Icons.done_all, color: AppColors.purple, size: 20),
                       SizedBox(width: 12),
                       Text(
                         "Barchasini o'qish",

@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/widgets/terms_bottom_sheet.dart';
 import '../../../home/presentation/widgets/back_widget.dart';
-import '../widgets/delete_widget.dart';
 import '../widgets/logout_widget.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -147,23 +146,6 @@ class _SettingsPageState extends State<SettingsPage> {
                             showDialog(
                               context: context,
                               builder: (_) => const LogoutDialog(),
-                            );
-                          },
-                        ),
-                        SizedBox(height: 14.h),
-                        _SettingsTile(
-                          icon: Icons.delete_rounded,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xffE26F90), Color(0xffE26F90)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          label: "Profilni butunlay o'chirish",
-                          isDestructive: true,
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => const DeleteProfileDialog(),
                             );
                           },
                         ),

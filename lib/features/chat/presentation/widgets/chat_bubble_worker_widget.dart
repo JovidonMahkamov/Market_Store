@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'chat_message_worker.dart';
 
 class ChatBubbleWorkerWidget extends StatelessWidget {
   final ChatMessageWorker message;
+  final bool isSelectionMode;
+  final bool isSelected;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
+  final VoidCallback onCopy;
+  final void Function(Offset position, bool isMe) onShowMenu;
+  final void Function(Offset position, bool isMe) onTapMenu;
+  final VoidCallback onEnterSelectionMode;
+  final VoidCallback onToggleSelect;
 
   const ChatBubbleWorkerWidget({
     super.key,
     required this.message,
+    required this.isSelectionMode,
+    required this.isSelected,
     required this.onDelete,
     required this.onEdit,
+    required this.onCopy,
+    required this.onShowMenu,
+    required this.onTapMenu,
+    required this.onEnterSelectionMode,
+    required this.onToggleSelect,
   });
 
   @override
@@ -22,70 +35,54 @@ class ChatBubbleWorkerWidget extends StatelessWidget {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+        isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              Container(
-
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                padding: const EdgeInsets.only(left: 20,right: 20,bottom: 20,top: 30),
-                constraints: const BoxConstraints(maxWidth: 260),
-                decoration: BoxDecoration(
-                  color: isMe ? Colors.blue : Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(16),
-                    topRight: const Radius.circular(16),
-                    bottomLeft:
-                    isMe ? const Radius.circular(16) : Radius.zero,
-                    bottomRight:
-                    isMe ? Radius.zero : const Radius.circular(16),
-                  ),
-                ),
-                child: Text(
-                  message.text,
-                  style: TextStyle(
-                      color: isMe ? Colors.white : Colors.black87,
-                      fontSize: 16.sp
-                  ),
+          GestureDetector(
+            onLongPressStart: (details) {
+              onEnterSelectionMode();
+            },
+            onTapUp: (details) {
+              if (isSelectionMode) {
+                onToggleSelect();
+              } else {
+                onTapMenu(details.globalPosition, isMe);
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.all(16),
+              constraints: const BoxConstraints(maxWidth: 260),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.purple.withOpacity(0.5)
+                    : isMe
+                    ? const Color(0xff9859EF)
+                    : const Color(0xFFF7F2FF),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Text(
+                message.text,
+                style: TextStyle(
+                  color: isMe ? Colors.white : Colors.black87,
+                  fontSize: 14.sp,
                 ),
               ),
-              if (isMe)
-                Positioned(
-                  right: 0,
-                  top: 1,
-                  child: PopupMenuButton<String>(
-                    color: Colors.white,
-                    icon: const Icon(Icons.more_vert,
-                        size: 20, color: Colors.white),
-                    onSelected: (value) {
-                      if (value == 'edit') onEdit();
-                      if (value == 'delete') onDelete();
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Text('Tahrirlash',style: TextStyle(color:Colors.blueAccent),),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text('O‘chirish',style: TextStyle(color: Colors.red),),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+            ),
           ),
-          Text(
-            _formatTime(message.createdAt),
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-          )
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              _formatTime(message.createdAt),
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String _formatTime(DateTime time) {
-    return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
-  }
+  String _formatTime(DateTime time) =>
+      "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
 }

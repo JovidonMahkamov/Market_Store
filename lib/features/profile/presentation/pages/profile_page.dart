@@ -125,7 +125,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: AppColors.grey,
                           ),
                         ),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 10.h),
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -138,34 +138,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 border: Border.all(
                                   color: AppColors.purple,
                                   width: 2.5,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 2,
-                              right: 2,
-                              child: Container(
-                                width: 34.w,
-                                height: 34.w,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xffD0AFFF),
-                                      Color(0xffC23AF5),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.white,
-                                  size: 16.sp,
                                 ),
                               ),
                             ),

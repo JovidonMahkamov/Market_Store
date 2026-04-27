@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:market_store/features/home/presentation/pages/product_detail_page.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/routes/route_names.dart';
 import 'edit_delete_widget.dart';
 
 class ProductCardWidget extends StatelessWidget {

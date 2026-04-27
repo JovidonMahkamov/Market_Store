@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class LogoutDialog extends StatelessWidget {
   const LogoutDialog({super.key});
@@ -7,6 +8,7 @@ class LogoutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: AppColors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
       insetPadding: EdgeInsets.symmetric(horizontal: 28.w),
       child: Padding(
@@ -32,9 +34,9 @@ class LogoutDialog extends StatelessWidget {
             Text(
               "Profildan chiqish",
               style: TextStyle(
-                fontSize: 17.sp,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF2D2D2D),
+                color: Colors.red,
               ),
             ),
             SizedBox(height: 10.h),
@@ -42,10 +44,9 @@ class LogoutDialog extends StatelessWidget {
             Text(
               "Profilingizdan chiqishni istaysizmi?",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp, color: const Color(0xFF888888)),
+              style: TextStyle(fontSize: 15.sp, color: Colors.red),
             ),
             SizedBox(height: 24.h),
-
             Row(
               children: [
                 Expanded(
@@ -56,14 +57,14 @@ class LogoutDialog extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(30.r),
-                        border: Border.all(color: const Color(0xFFE0D5FF)),
+                        border: Border.all(color: Color(0xffECE5E5FF)),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         "Bekor qilish",
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: const Color(0xFF9B6FE8),
+                          color: const Color(0xFFC23AF5),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -80,7 +81,7 @@ class LogoutDialog extends StatelessWidget {
                       height: 46.h,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF9B6FE8), Color(0xFF6A4FCF)],
+                          colors: [Color(0xFFC86EF9), Color(0xFF8B7CF6)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
@@ -88,10 +89,10 @@ class LogoutDialog extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        "Ha, chiqish",
+                        "Ha, o'chirish",
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

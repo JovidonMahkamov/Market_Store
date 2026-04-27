@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:iconly/iconly.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../home/presentation/widgets/back_widget.dart';
@@ -13,11 +15,7 @@ class ChatWithCustomerPage extends StatefulWidget {
   final String name;
   final String? imageUrl;
 
-  const ChatWithCustomerPage({
-    super.key,
-    required this.name,
-    this.imageUrl,
-  });
+  const ChatWithCustomerPage({super.key, required this.name, this.imageUrl});
 
   @override
   State<ChatWithCustomerPage> createState() => _ChatWithCustomerPageState();
@@ -31,7 +29,7 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
   bool _isSelectionMode = false;
   final Set<int> _selectedIndexes = {};
   bool _showPlusMenu = false;
-  bool _isLoadingLocation = false; // Loading indikator
+  bool _isLoadingLocation = false;
 
   static const _appBarGradient = LinearGradient(
     begin: Alignment.topCenter,
@@ -75,8 +73,9 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
           _scrollCtrl.position.maxScrollExtent - _scrollCtrl.offset;
       _autoScroll = distanceToBottom < 80.0;
     });
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _scrollToBottom(animated: false));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scrollToBottom(animated: false),
+    );
   }
 
   @override
@@ -90,25 +89,25 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
     if (!_scrollCtrl.hasClients) return;
     final target = _scrollCtrl.position.maxScrollExtent;
     if (animated) {
-      _scrollCtrl.animateTo(target,
-          duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      _scrollCtrl.animateTo(
+        target,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
     } else {
       _scrollCtrl.jumpTo(target);
     }
   }
 
   Future<void> _sendLocation() async {
-    // 1. GPS yoqilganmi?
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!mounted) return;
       _showSnackBar("GPS o'chiq. Sozlamalardan yoqing.");
-      // Foydalanuvchini sozlamaga olib borish
       await Geolocator.openLocationSettings();
       return;
     }
 
-    // 2. Ruxsat tekshirish
     LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
@@ -122,37 +121,44 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
 
     if (permission == LocationPermission.deniedForever) {
       if (!mounted) return;
-      // Foydalanuvchini app sozlamalariga yo'naltirish
       final ok = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text("Ruxsat kerak",
-              style: TextStyle(fontWeight: FontWeight.w600)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            "Ruxsat kerak",
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
           content: const Text(
             "Lokatsiya ruxsati doimiy rad etilgan. "
-                "Ilovalar sozlamasidan ruxsat bering.",
+            "Ilovalar sozlamasidan ruxsat bering.",
           ),
           actions: [
-            Row(children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Bekor qilish'),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Bekor qilish'),
+                  ),
                 ),
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple),
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Sozlamalar',
-                      style: TextStyle(color: Colors.white)),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                    ),
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text(
+                      'Sozlamalar',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ],
         ),
       );
@@ -160,11 +166,9 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
       return;
     }
 
-    // 3. Loading ko'rsatish
     setState(() => _isLoadingLocation = true);
 
     try {
-      // 4. Koordinatalarni olish
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
@@ -174,16 +178,17 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
 
       if (!mounted) return;
 
-      // 5. Lokatsiya xabarini qo'shish — MATN EMAS, alohida tip!
       setState(() {
-        _messages.add(ChatMessageWorker(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          text: '', // lokatsiya uchun matn bo'sh
-          createdAt: DateTime.now(),
-          isMe: true,
-          latitude: position.latitude,
-          longitude: position.longitude,
-        ));
+        _messages.add(
+          ChatMessageWorker(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            text: '',
+            createdAt: DateTime.now(),
+            isMe: true,
+            latitude: position.latitude,
+            longitude: position.longitude,
+          ),
+        );
         _showPlusMenu = false;
       });
 
@@ -200,8 +205,9 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _makePhoneCall(String phoneNumber) async {
@@ -217,12 +223,14 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     setState(() {
-      _messages.add(ChatMessageWorker(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        text: text,
-        createdAt: DateTime.now(),
-        isMe: true,
-      ));
+      _messages.add(
+        ChatMessageWorker(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          text: text,
+          createdAt: DateTime.now(),
+          isMe: true,
+        ),
+      );
       _showPlusMenu = false;
     });
     _controller.clear();
@@ -236,8 +244,9 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
   void _editMessage(int index) {
     final msg = _messages[index];
     _controller.text = msg.text;
-    _controller.selection =
-        TextSelection.fromPosition(TextPosition(offset: msg.text.length));
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: msg.text.length),
+    );
     setState(() => _messages.removeAt(index));
   }
 
@@ -304,34 +313,195 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
     if (mounted) Navigator.pop(context);
   }
 
+  void _showMessageMenu(int index, Offset position, bool isMe) {
+    final msg = _messages[index];
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        position.dx,
+        position.dy,
+      ),
+      items: [
+        if (isMe)
+          const PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit, color: Colors.purple),
+                SizedBox(width: 10),
+                Text('Tahrirlash'),
+              ],
+            ),
+          ),
+
+        const PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete, color: Colors.red),
+              SizedBox(width: 10),
+              Text('O‘chirish'),
+            ],
+          ),
+        ),
+
+        const PopupMenuItem(
+          value: 'copy',
+          child: Row(
+            children: [
+              Icon(Icons.copy, color: Colors.grey),
+              SizedBox(width: 10),
+              Text('Nusxa olish'),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'edit' && isMe) _editMessage(index);
+      if (value == 'delete') _deleteMessage(index);
+      if (value == 'copy') {
+        Clipboard.setData(ClipboardData(text: msg.text));
+        _showSnackBar("Nusxa olindi");
+      }
+    });
+  }
+
+  void _showTapMenu(int index, Offset position, bool isMe) {
+    if (_isSelectionMode) {
+      _toggleSelectMessage(index);
+      return;
+    }
+
+    final msg = _messages[index];
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx - 100,
+        position.dy - 10,
+        position.dx,
+        position.dy,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), color: Colors.white,
+      items: [
+        if (isMe)
+          const PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit_outlined, color: Colors.purple),
+                SizedBox(width: 10),
+                Text('Tahrirlash', style: TextStyle(color: AppColors.darkGrey, fontSize: 15, fontWeight: FontWeight.w400)),
+              ],
+            ),
+          ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(IconlyLight.delete, color: AppColors.error),
+              SizedBox(width: 10),
+              Text("O'chirish", style: TextStyle(color: AppColors.error, fontSize: 15)),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'copy',
+          child: Row(
+            children: [
+              Icon(Icons.copy_outlined, color: Colors.purple),
+              SizedBox(width: 10),
+              Text('Nusxa olish', style: TextStyle(color: AppColors.darkGrey, fontSize: 15, fontWeight: FontWeight.w400)),
+
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'edit' && isMe) _editMessage(index);
+      if (value == 'delete') _deleteMessage(index);
+      if (value == 'copy') {
+        Clipboard.setData(ClipboardData(text: msg.text));
+        _showSnackBar("Nusxa olindi");
+      }
+    });
+  }
+
   Widget _confirmDialog({
     required String title,
     required String content,
     required String confirmLabel,
   }) {
     return AlertDialog(
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      content: Text(content),
+      title: Center(child: Text(title, style: TextStyle(
+        fontSize: 18.sp,
+        fontWeight: FontWeight.w500,
+        color: Colors.red,
+      ),)),
+      content: Text(content, style: TextStyle(
+        fontSize: 15.sp,
+        color: Colors.red,
+      )),
       actions: [
-        Row(children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Bekor qilish'),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  height: 46.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30.r),
+                    border: Border.all(color: Color(0xffECE5E5FF)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Bekor qilish",
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: const Color(0xFFC23AF5),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(confirmLabel,
-                  style: const TextStyle(color: Colors.white)),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  height: 46.h,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFC86EF9), Color(0xFF8B7CF6)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30.r),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Ha, o'chirish",
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ]),
-      ],
+          ],
+        ),      ],
     );
   }
 
@@ -349,7 +519,7 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
       'Sentabr',
       'Oktabr',
       'Noyabr',
-      'Dekabr'
+      'Dekabr',
     ];
     return '${dt.day}-${months[dt.month]}, ${dt.year}';
   }
@@ -397,23 +567,24 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                   onTap: _clearSelection,
                   child: Container(
                     margin: EdgeInsets.only(right: 8.w),
-                    padding: EdgeInsets.symmetric(horizontal: 8.w),
-                    height: 36.h,
+                    padding: EdgeInsets.only(left: 12.w, right: 12, top: 6, bottom: 6),
+                    height: 40.h,
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.close, color: Colors.purple, size: 16),
-                        SizedBox(width: 2.w),
+                        const Icon(Icons.close, color: Colors.purple, size: 22),
+                        SizedBox(width: 8.w),
                         Text(
                           '${_selectedIndexes.length}',
                           style: const TextStyle(
                             color: Colors.purple,
                             fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            fontSize: 18,
                           ),
                         ),
                       ],
@@ -451,8 +622,11 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.phone_outlined,
-                      color: Colors.purple, size: 20),
+                  icon: const Icon(
+                    Icons.phone_outlined,
+                    color: Colors.purple,
+                    size: 20,
+                  ),
                   onPressed: () => _makePhoneCall("+998900000000"),
                 ),
               ),
@@ -466,8 +640,11 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      color: Colors.purple, size: 22),
+                  icon: const Icon(
+                    IconlyLight.delete,
+                    color: Colors.purple,
+                    size: 22,
+                  ),
                   onPressed: _selectedIndexes.isEmpty
                       ? null
                       : _deleteSelectedMessages,
@@ -483,10 +660,14 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                   shape: BoxShape.circle,
                 ),
                 child: PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert,
-                      color: Colors.black87, size: 22),
+                  icon: const Icon(
+                    Icons.more_vert,
+                    color: AppColors.purple,
+                    size: 22,
+                  ),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r)),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
                   color: Colors.white,
                   elevation: 8,
                   offset: const Offset(0, 50),
@@ -502,62 +683,81 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                   itemBuilder: (context) => [
                     PopupMenuItem<String>(
                       value: 'mute',
-                      child: Row(children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            shape: BoxShape.circle,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.notifications_off_outlined,
+                              color: AppColors.error,
+                              size: 18,
+                            ),
                           ),
-                          child: Icon(Icons.notifications_off_outlined,
-                              color: AppColors.error, size: 18),
-                        ),
-                        SizedBox(width: 10.w),
-                        const Text("Bildirishnomalarni o'chirish",
+                          SizedBox(width: 10.w),
+                          const Text(
+                            "Bildirishnomalarni o'chirish",
                             style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.red)),
-                      ]),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     PopupMenuItem<String>(
                       value: 'clear',
-                      child: Row(children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
-                            shape: BoxShape.circle,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: SvgPicture.asset("assets/home/clear.svg", color: AppColors.darkGrey,),
                           ),
-                          child: SvgPicture.asset("assets/home/clear.svg"),
-                        ),
-                        SizedBox(width: 10.w),
-                        Text("Tarixni tozalash",
+                          SizedBox(width: 10.w),
+                          Text(
+                            "Tarixni tozalash",
                             style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.darkGrey)),
-                      ]),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.darkGrey,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     PopupMenuItem<String>(
                       value: 'delete',
-                      child: Row(children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
-                            shape: BoxShape.circle,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              IconlyLight.delete,
+                              color: AppColors.darkGrey,
+                              size: 18,
+                            ),
                           ),
-                          child: const Icon(Icons.delete_outline,
-                              color: Colors.black87, size: 18),
-                        ),
-                        SizedBox(width: 10.w),
-                        Text("Chatni o'chirish",
+                          SizedBox(width: 10.w),
+                          Text(
+                            "Chatni o'chirish",
                             style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.darkGrey)),
-                      ]),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.darkGrey,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -571,8 +771,10 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
               Expanded(
                 child: ListView.builder(
                   controller: _scrollCtrl,
-                  padding:
-                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 8.h,
+                  ),
                   itemCount: items.length,
                   itemBuilder: (context, i) {
                     final item = items[i];
@@ -583,12 +785,14 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                     final ChatMessageWorker msg = item['msg'];
                     final bool isSelected = _selectedIndexes.contains(msgIndex);
                     return _buildMessageRow(
-                        msg: msg, index: msgIndex, isSelected: isSelected);
+                      msg: msg,
+                      index: msgIndex,
+                      isSelected: isSelected,
+                    );
                   },
                 ),
               ),
 
-              // Loading lokatsiya
               if (_isLoadingLocation)
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -599,12 +803,15 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.purple),
+                          strokeWidth: 2,
+                          color: Colors.purple,
+                        ),
                       ),
                       SizedBox(width: 8.w),
-                      Text("Lokatsiya aniqlanmoqda...",
-                          style:
-                          TextStyle(fontSize: 13.sp, color: Colors.grey)),
+                      Text(
+                        "Lokatsiya aniqlanmoqda...",
+                        style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                      ),
                     ],
                   ),
                 ),
@@ -625,9 +832,10 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
         child: Text(
           date,
           style: TextStyle(
-              fontSize: 13.sp,
-              color: Colors.black54,
-              fontWeight: FontWeight.w500),
+            fontSize: 13.sp,
+            color: Colors.black54,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
@@ -638,21 +846,13 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
     required int index,
     required bool isSelected,
   }) {
-    return GestureDetector(
-      onLongPress: () {
-        setState(() {
-          _isSelectionMode = true;
-          _selectedIndexes.add(index);
-        });
-      },
-      onTap: () {
-        if (_isSelectionMode) _toggleSelectMessage(index);
-      },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_isSelectionMode)
-            Padding(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_isSelectionMode)
+          GestureDetector(
+            onTap: () => _toggleSelectMessage(index),
+            child: Padding(
               padding: EdgeInsets.only(top: 10.h, right: 6.w),
               child: Container(
                 width: 22.w,
@@ -661,57 +861,54 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                   shape: BoxShape.circle,
                   color: isSelected ? Colors.purple : Colors.white,
                   border: Border.all(
-                      color: Colors.purple.withOpacity(0.5), width: 1.5),
+                    color: Colors.purple.withOpacity(0.5),
+                    width: 1.5,
+                  ),
                 ),
                 child: isSelected
                     ? const Icon(Icons.check, size: 14, color: Colors.white)
                     : null,
               ),
             ),
-
-          Expanded(
-            child: Column(
-              children: [
-                // ── Xabar turi bo'yicha render ──────────────────────────
-                if (msg.isLocation)
-                // Lokatsiya bubble
-                  ChatLocationBubble(
-                    latitude: msg.latitude!,
-                    longitude: msg.longitude!,
-                    isMe: msg.isMe,
-                  )
-                else if (msg.isProductCard)
-                // Mahsulot kartochkasi
-                  _buildProductCard(msg)
-                else
-                // Oddiy matn xabari
-                  ChatBubbleWorkerWidget(
-                    message: msg,
-                    onDelete: () => _deleteMessage(index),
-                    onEdit: () => _editMessage(index),
-                  ),
-
-                // Vaqt
-                Align(
-                  alignment: msg.isMe
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                        left: msg.isMe ? 0 : 4.w,
-                        right: msg.isMe ? 4.w : 0,
-                        bottom: 4.h),
-                    child: Text(
-                      _formatTime(msg.createdAt),
-                      style: TextStyle(fontSize: 11.sp, color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
-        ],
-      ),
+        Expanded(
+          child: Column(
+            children: [
+              if (msg.isLocation)
+                ChatLocationBubble(
+                  latitude: msg.latitude!,
+                  longitude: msg.longitude!,
+                  isMe: msg.isMe,
+                )
+              else if (msg.isProductCard)
+                _buildProductCard(msg)
+              else
+                ChatBubbleWorkerWidget(
+                  message: msg,
+                  isSelectionMode: _isSelectionMode,
+                  isSelected: isSelected,
+                  onDelete: () => _deleteMessage(index),
+                  onEdit: () => _editMessage(index),
+                  onCopy: () {
+                    Clipboard.setData(ClipboardData(text: msg.text));
+                    _showSnackBar("Nusxa olindi");
+                  },
+                  onShowMenu: (position, isMe) =>
+                      _showMessageMenu(index, position, isMe),
+                  onTapMenu: (position, isMe) =>
+                      _showTapMenu(index, position, isMe),
+                  onEnterSelectionMode: () {
+                    setState(() {
+                      _isSelectionMode = true;
+                      _selectedIndexes.add(index);
+                    });
+                  },
+                  onToggleSelect: () => _toggleSelectMessage(index),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -744,45 +941,69 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Sotuvda bor',
-                      style: TextStyle(
-                          color: Colors.purple,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w500)),
+                  Text(
+                    'Sotuvda bor',
+                    style: TextStyle(
+                      color: Colors.purple,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   SizedBox(height: 4.h),
-                  Text('Krem Klassik Parda',
-                      style: TextStyle(
-                          fontSize: 14.sp, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Krem Klassik Parda',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   SizedBox(height: 4.h),
-                  Row(children: [
-                    Text('\$12.50',
+                  Row(
+                    children: [
+                      Text(
+                        '\$12.50',
                         style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.red,
-                            decoration: TextDecoration.lineThrough)),
-                    SizedBox(width: 6.w),
-                    Text('\$10.00/ metr',
-                        style:
-                        TextStyle(fontSize: 12.sp, color: Colors.black87)),
-                  ]),
+                          fontSize: 12.sp,
+                          color: Colors.red,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      SizedBox(width: 6.w),
+                      Text(
+                        '\$10.00/ metr',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 4.h),
                   RichText(
                     text: TextSpan(
                       children: [
                         TextSpan(
-                            text: 'Miqdor: ',
-                            style: TextStyle(
-                                fontSize: 12.sp, color: Colors.black54)),
+                          text: 'Miqdor: ',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.black54,
+                          ),
+                        ),
                         TextSpan(
-                            text: '25/',
-                            style: TextStyle(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black)),
+                          text: '25/',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
                         TextSpan(
-                            text: 'metr',
-                            style: TextStyle(
-                                fontSize: 12.sp, color: Colors.black54)),
+                          text: 'metr',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.black54,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -805,9 +1026,10 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
         border: Border.all(color: Colors.purple.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-              color: Colors.purple.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, -2))
+            color: Colors.purple.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
         ],
       ),
       child: Row(
@@ -815,9 +1037,11 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
         children: [
           _plusMenuItem(Icons.camera_alt_outlined, 'Kamera'),
           _plusMenuItem(Icons.photo_library_outlined, 'Galereya'),
-          // ✅ Lokatsiya tugmasi — onTap to'g'ri ulangan
-          _plusMenuItem(Icons.location_on_outlined, 'Lokatsiya',
-              onTap: _sendLocation),
+          _plusMenuItem(
+            Icons.location_on_outlined,
+            'Lokatsiya',
+            onTap: _sendLocation,
+          ),
         ],
       ),
     );
@@ -841,8 +1065,10 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
             child: Icon(icon, color: Colors.purple, size: 24),
           ),
           SizedBox(height: 6.h),
-          Text(label,
-              style: TextStyle(fontSize: 11.sp, color: Colors.black54)),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11.sp, color: Colors.black54),
+          ),
         ],
       ),
     );
@@ -861,11 +1087,16 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
               height: 46.w,
               decoration: BoxDecoration(
                 border: Border.all(
-                    color: Colors.purple.withOpacity(0.5), width: 1.5),
+                  color: Colors.purple.withOpacity(0.5),
+                  width: 1.5,
+                ),
                 borderRadius: BorderRadius.circular(14.r),
               ),
-              child:
-              Icon(Icons.add, color: Colors.purple.withOpacity(0.8), size: 22),
+              child: Icon(
+                Icons.add,
+                color: Colors.purple.withOpacity(0.8),
+                size: 22,
+              ),
             ),
           ),
           SizedBox(width: 8.w),
@@ -875,7 +1106,9 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24.r),
                 border: Border.all(
-                    color: Colors.purple.withOpacity(0.2), width: 1),
+                  color: Colors.purple.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: Row(
                 children: [
@@ -886,18 +1119,25 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                       controller: _controller,
                       decoration: InputDecoration(
                         hintText: 'Xabar yozing',
-                        hintStyle:
-                        TextStyle(color: Colors.grey, fontSize: 14.sp),
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14.sp,
+                        ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16.w, vertical: 10.h),
+                          horizontal: 16.w,
+                          vertical: 10.h,
+                        ),
                       ),
                     ),
                   ),
                   Padding(
                     padding: EdgeInsets.only(right: 8.w),
-                    child: const Icon(Icons.mic_none_outlined,
-                        color: Colors.grey, size: 22),
+                    child: const Icon(
+                      Icons.mic_none_outlined,
+                      color: Colors.grey,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),
@@ -913,8 +1153,11 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage> {
                 color: Colors.purple,
                 borderRadius: BorderRadius.circular(14.r),
               ),
-              child: const Icon(Icons.send_rounded,
-                  color: Colors.white, size: 22),
+              child: const Icon(
+                Icons.send_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
         ],
