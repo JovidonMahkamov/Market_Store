@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:iconly/iconly.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class AppDropdownField<T> extends StatelessWidget {
@@ -24,13 +25,16 @@ class AppDropdownField<T> extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
+        IconlyLight.arrow_down_2,
         color: AppColors.purple,
       ),
       style: const TextStyle(fontSize: 15, color: AppColors.darkGrey),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 15),
+        hintStyle: const TextStyle(
+          color: AppColors.darkGrey,
+          fontSize: 15,
+        ),
         filled: true,
         fillColor: Colors.white,
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),

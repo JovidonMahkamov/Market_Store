@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/widgets/terms_bottom_sheet.dart';
 import '../../../home/presentation/widgets/back_widget.dart';
@@ -23,11 +22,11 @@ class _SettingsPageState extends State<SettingsPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => TermsBottomSheet(
-        onAccept: () =>
-            setState(() => _agreedToTerms = !_agreedToTerms),
+        onAccept: () => setState(() => _agreedToTerms = !_agreedToTerms),
       ),
     );
   }
+
   bool _chatNotifications = true;
 
   static const _backgroundGradient = LinearGradient(
@@ -92,17 +91,15 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SettingsTile(
                           icon: Icons.volume_off_rounded,
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xffD0AFFF),
-                              Color(0xffC23AF5),
-                            ],
+                            colors: [Color(0xffD0AFFF), Color(0xffC23AF5)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           label: "Chat bildirishnomalar",
                           trailing: Switch(
                             value: _chatNotifications,
-                            onChanged: (v) => setState(() => _chatNotifications = v),
+                            onChanged: (v) =>
+                                setState(() => _chatNotifications = v),
 
                             activeColor: Colors.white,
                             activeTrackColor: const Color(0xffC23AF5),
@@ -110,16 +107,16 @@ class _SettingsPageState extends State<SettingsPage> {
                             inactiveThumbColor: Colors.white,
                             inactiveTrackColor: const Color(0xffEEF2F6),
 
-                            trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-                          ),                        ),
+                            trackOutlineColor: MaterialStateProperty.all(
+                              Colors.transparent,
+                            ),
+                          ),
+                        ),
                         SizedBox(height: 14.h),
                         _SettingsTile(
                           icon: Icons.headphones_rounded,
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xffD0AFFF),
-                              Color(0xffC23AF5),
-                            ],
+                            colors: [Color(0xffD0AFFF), Color(0xffC23AF5)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -129,25 +126,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         SizedBox(height: 14.h),
                         _SettingsTile(
                           icon: Icons.assignment_rounded,
-                          gradient:  LinearGradient(
-                            colors: [
-                              Color(0xffD0AFFF),
-                              Color(0xffC23AF5),
-                            ],
+                          gradient: LinearGradient(
+                            colors: [Color(0xffD0AFFF), Color(0xffC23AF5)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           label: "Foydalanish shartlari",
-                          onTap:  _openTerms,
+                          onTap: _openTerms,
                         ),
                         SizedBox(height: 14.h),
                         _SettingsTile(
                           icon: Icons.logout_rounded,
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xffD0AFFF),
-                              Color(0xffC23AF5),
-                            ],
+                            colors: [Color(0xffD0AFFF), Color(0xffC23AF5)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -163,10 +154,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SettingsTile(
                           icon: Icons.delete_rounded,
                           gradient: const LinearGradient(
-                            colors: [
-                              Color(0xffE26F90),
-                              Color(0xffE26F90),
-                            ],
+                            colors: [Color(0xffE26F90), Color(0xffE26F90)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -191,6 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -216,9 +205,7 @@ class _SettingsTile extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
         decoration: BoxDecoration(
-          color: isDestructive
-              ? const Color(0xFFFFF0F0)
-              : Colors.white,
+          color: isDestructive ? const Color(0xFFFFF0F0) : Colors.white,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isDestructive
@@ -248,7 +235,7 @@ class _SettingsTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w400,
-                  color:  AppColors.darkGrey,
+                  color: AppColors.darkGrey,
                 ),
               ),
             ),
@@ -264,4 +251,3 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
-

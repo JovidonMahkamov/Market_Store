@@ -21,8 +21,11 @@ class LogoutDialog extends StatelessWidget {
                 color: Color(0xFFEEE8FF),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.logout_rounded,
-                  color: const Color(0xFF9B6FE8), size: 26.sp),
+              child: Icon(
+                Icons.logout_rounded,
+                color: const Color(0xFF9B6FE8),
+                size: 26.sp,
+              ),
             ),
             SizedBox(height: 16.h),
 
@@ -39,10 +42,7 @@ class LogoutDialog extends StatelessWidget {
             Text(
               "Profilingizdan chiqishni istaysizmi?",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFF888888),
-              ),
+              style: TextStyle(fontSize: 14.sp, color: const Color(0xFF888888)),
             ),
             SizedBox(height: 24.h),
 

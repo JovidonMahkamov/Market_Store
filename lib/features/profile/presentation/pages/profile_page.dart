@@ -33,10 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final double bottomPadding =
-        MediaQuery
-            .of(context)
-            .padding
-            .bottom + kBottomNavigationBarHeight;
+        MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight;
 
     return Scaffold(
       extendBody: true,
@@ -82,7 +79,10 @@ class _ProfilePageState extends State<ProfilePage> {
               shape: BoxShape.circle,
             ),
             child: GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              ),
               child: Icon(
                 Icons.settings_outlined,
                 color: AppColors.purple,
@@ -133,7 +133,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               width: 110.w,
                               height: 110.w,
                               decoration: BoxDecoration(
-
                                 shape: BoxShape.circle,
                                 color: const Color(0xFFE8DEFF),
                                 border: Border.all(
@@ -208,7 +207,16 @@ class _ProfilePageState extends State<ProfilePage> {
                         SizedBox(height: 25.h),
                         MarketWidget(),
                         SizedBox(height: 40.h),
-                        ElevatedWidget(onPressed: (){Navigator.pushNamed(context, RouteNames.editProfile);}, text: "Profilni tahrirlash", textColor: Colors.white),
+                        ElevatedWidget(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.editProfile,
+                            );
+                          },
+                          text: "Profilni tahrirlash",
+                          textColor: Colors.white,
+                        ),
                         SizedBox(height: bottomPadding + 16.h),
                       ],
                     ),
@@ -220,4 +228,5 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
-  }}
+  }
+}

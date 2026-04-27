@@ -19,7 +19,7 @@ class _MarketWidgetState extends State<MarketWidget> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22.r),
-        border: BoxBorder.all(color: AppColors.purple)
+        border: BoxBorder.all(color: AppColors.purple),
       ),
       child: Row(
         children: [
@@ -73,13 +73,12 @@ class _MarketWidgetState extends State<MarketWidget> {
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
         ],
       ),
     );
-
   }
 }

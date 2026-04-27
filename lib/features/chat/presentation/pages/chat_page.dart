@@ -17,11 +17,11 @@ class _ChatPageState extends State<ChatPage> {
   final Set<int> selectedIndexes = {};
 
   final List<ChatListWorker> _rooms = [
-    ChatListWorker(id: '1', name: 'Royal Curtains', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
-    ChatListWorker(id: '2', name: 'Lux Market', lastMessage: 'Rahmat!', time: '09:38', unread: 1),
-    ChatListWorker(id: '3', name: 'Lux Market', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
-    ChatListWorker(id: '4', name: 'Lux Market', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
-    ChatListWorker(id: '5', name: 'Lux Market', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
+    ChatListWorker(id: '1', name: 'Sevinch Sharobidinova', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
+    ChatListWorker(id: '2', name: 'Sevinch Sharobidinova', lastMessage: 'Rahmat!', time: '09:38', unread: 1),
+    ChatListWorker(id: '3', name: 'Sevinch Sharobidinova', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
+    ChatListWorker(id: '4', name: 'Sevinch Sharobidinova', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
+    ChatListWorker(id: '5', name: 'Sevinch Sharobidinova', lastMessage: 'Rahmat!', time: '09:38', unread: 0),
   ];
 
   static const _backgroundGradient = LinearGradient(

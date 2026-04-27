@@ -28,10 +28,7 @@ class DeleteProfileDialog extends StatelessWidget {
             Text(
               "Barcha ma'lumotlaringiz o'chadi va qayta tiklanmaydi",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFFE86F6F),
-              ),
+              style: TextStyle(fontSize: 14.sp, color: const Color(0xFFE86F6F)),
             ),
             SizedBox(height: 24.h),
 
