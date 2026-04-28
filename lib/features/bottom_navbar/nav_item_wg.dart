@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../core/constants/app_colors.dart';
 
 class BottomNavItem extends StatelessWidget {
   final bool isSelected;
@@ -27,7 +26,7 @@ class BottomNavItem extends StatelessWidget {
     end: Alignment.bottomRight,
   );
 
-  static const Color _inactive = AppColors.white;
+  static const Color _inactive = Color(0xFFB0ADCC);
 
   @override
   Widget build(BuildContext context) {
@@ -44,18 +43,21 @@ class BottomNavItem extends StatelessWidget {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOutCubic,
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFFEAE6FF)
-                      :  AppColors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: isSelected
+                    ? BoxDecoration(
+                  gradient: _gradient,
                   borderRadius: BorderRadius.circular(20),
-                ),
+                )
+                    : const BoxDecoration(),
                 child: SvgPicture.asset(
                   icon,
                   width: 22,
                   height: 22,
+                  colorFilter: ColorFilter.mode(
+                    isSelected ? Colors.white : _inactive,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
               AnimatedSize(
@@ -64,12 +66,17 @@ class BottomNavItem extends StatelessWidget {
                 child: isSelected
                     ? Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF9B8CF7),
+                  child: ShaderMask(
+                    shaderCallback: (bounds) =>
+                        _gradient.createShader(bounds),
+                    blendMode: BlendMode.srcIn,
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 )

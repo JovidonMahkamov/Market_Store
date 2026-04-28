@@ -17,7 +17,6 @@ class NotificationWg extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){Navigator.pushNamed(context, RouteNames.productPage);},
       child: Container(
         margin: EdgeInsets.only(bottom: 18.h),
         padding: EdgeInsets.all(8.w),
