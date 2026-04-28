@@ -1,14 +1,5 @@
-/// lib/features/chat/presentation/pages/chat_with_customer.dart
-/// ✅ To'liq tuzatilgan version:
-///   ✅ Ovozli xabar speaker dan chiqadi
-///   ✅ Mic: bosib tur → ovoz yoz → qo'yib yubor → xabarga qo'shiladi
-///   ✅ Video: bosib tur → kamera video yozadi → qo'yib yubor → dumaloq video yuboriladi
-///   ✅ Send tugmasi faqat matn bolganda paydo bo'ladi
-///   ✅ Xatoliklar tuzatildi: fayl tekshiruvi, recSeconds < 1 muammosi, video xabar
-
 import 'dart:io';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,7 +13,6 @@ import 'package:market_store/features/chat/presentation/widgets/chat_voice_circl
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../core/constants/app_colors.dart';
 import '../../../home/presentation/widgets/back_widget.dart';
 import '../widgets/chat_bubble_worker_widget.dart';
@@ -226,7 +216,7 @@ class _ChatWithCustomerPageState extends State<ChatWithCustomerPage>
       text: '',
       createdAt: DateTime.now(),
       isMe: true,
-      type: MessageType.voiceCircle,
+      type: MessageType.voice,
       audioPath: path,
       audioDuration: duration,
       waveform: wave,

@@ -1,6 +1,3 @@
-/// lib/features/chat/presentation/widgets/chat_voice_circle_wg.dart
-/// ✅ To'liq tuzatilgan: audioplayers v6+ API, speaker orqali ovoz
-
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -21,14 +18,14 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
   final AudioPlayer _player = AudioPlayer();
   bool _isPlaying = false;
   double _progress = 0.0;
+  int _currentSec = 0;
+  bool _isSeeking = false;
 
   late final AnimationController _pulseCtrl;
 
   @override
   void initState() {
     super.initState();
-
-    // ✅ Speaker dan ovoz chiqarish (audioplayers v6+ da to'g'ri usul)
     _player.setPlayerMode(PlayerMode.mediaPlayer);
 
     _pulseCtrl = AnimationController(
@@ -44,13 +41,12 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
     });
 
     _player.onPositionChanged.listen((pos) {
-      if (!mounted) return;
+      if (!mounted || _isSeeking) return;
       final total = (widget.message.audioDuration ?? 1).clamp(1, 9999);
-      setState(
-            () =>
-        _progress =
-            (pos.inMilliseconds / (total * 1000)).clamp(0.0, 1.0),
-      );
+      setState(() {
+        _currentSec = pos.inSeconds;
+        _progress = (pos.inMilliseconds / (total * 1000)).clamp(0.0, 1.0);
+      });
     });
 
     _player.onPlayerComplete.listen((_) {
@@ -58,6 +54,7 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
       setState(() {
         _isPlaying = false;
         _progress = 0.0;
+        _currentSec = 0;
       });
       _pulseCtrl
         ..stop()
@@ -75,12 +72,7 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
   Future<void> _togglePlay() async {
     final path = widget.message.audioPath;
     if (path == null) return;
-
-    // Fayl mavjudligini tekshiramiz
-    if (!File(path).existsSync()) {
-      debugPrint('Audio fayl topilmadi: $path');
-      return;
-    }
+    if (!File(path).existsSync()) return;
 
     if (_isPlaying) {
       await _player.pause();
@@ -88,7 +80,6 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
       if (_progress > 0 && _progress < 1.0) {
         await _player.resume();
       } else {
-        // ✅ AudioPlayer v6+ da speaker sozlamasi
         await _player.setAudioContext(
           AudioContext(
             android: AudioContextAndroid(
@@ -100,13 +91,27 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
             ),
             iOS: AudioContextIOS(
               category: AVAudioSessionCategory.playback,
-              options: {AVAudioSessionOptions.defaultToSpeaker},
+              options: {},
             ),
           ),
         );
         await _player.play(DeviceFileSource(path));
       }
     }
+  }
+
+  Future<void> _seekTo(double fraction) async {
+    final total = widget.message.audioDuration ?? 0;
+    if (total <= 0) return;
+    final newSec = (fraction * total).round();
+    setState(() {
+      _isSeeking = true;
+      _progress = fraction;
+      _currentSec = newSec;
+    });
+    await _player.seek(Duration(seconds: newSec));
+    setState(() => _isSeeking = false);
+    if (!_isPlaying) await _player.resume();
   }
 
   String _fmt(int sec) {
@@ -143,8 +148,7 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
                     // Pulse ring
                     AnimatedBuilder(
                       animation: _pulseCtrl,
-                      builder:
-                          (_, __) => Container(
+                      builder: (_, __) => Container(
                         width: size + _pulseCtrl.value * 16.w,
                         height: size + _pulseCtrl.value * 16.w,
                         decoration: BoxDecoration(
@@ -158,6 +162,7 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
                         ),
                       ),
                     ),
+
                     // Progress ring
                     SizedBox(
                       width: size + 8.w,
@@ -169,7 +174,8 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
                         color: Colors.purple,
                       ),
                     ),
-                    // Main circle
+
+                    // Gradient doira
                     Container(
                       width: size,
                       height: size,
@@ -201,6 +207,34 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
               ),
             ),
 
+            // Slider (seek uchun)
+            Padding(
+              padding: EdgeInsets.only(top: 2.h),
+              child: SizedBox(
+                width: size + 20.w,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2.5,
+                    thumbShape:
+                    const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape:
+                    const RoundSliderOverlayShape(overlayRadius: 12),
+                    activeTrackColor: Colors.purple,
+                    inactiveTrackColor: Colors.purple.withOpacity(0.2),
+                    thumbColor: Colors.purple,
+                    overlayColor: Colors.purple.withOpacity(0.15),
+                  ),
+                  child: Slider(
+                    value: _progress,
+                    onChangeStart: (_) => setState(() => _isSeeking = true),
+                    onChanged: (v) => setState(() => _progress = v),
+                    onChangeEnd: (v) => _seekTo(v),
+                  ),
+                ),
+              ),
+            ),
+
+            // Mic icon + vaqt
             Padding(
               padding: EdgeInsets.only(top: 2.h),
               child: Row(
@@ -209,7 +243,7 @@ class _ChatVoiceCircleWidgetState extends State<ChatVoiceCircleWidget>
                   const Icon(Icons.mic, size: 11, color: Colors.grey),
                   SizedBox(width: 3.w),
                   Text(
-                    _fmt(duration),
+                    _isPlaying ? _fmt(_currentSec) : _fmt(duration),
                     style: TextStyle(fontSize: 11.sp, color: Colors.grey),
                   ),
                   SizedBox(width: 6.w),

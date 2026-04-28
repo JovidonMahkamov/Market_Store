@@ -1,3 +1,5 @@
+// lib/features/chat/presentation/widgets/chat_video_circle_wg.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,84 +15,205 @@ class ChatVideoCircleWidget extends StatefulWidget {
   State<ChatVideoCircleWidget> createState() => _ChatVideoCircleWidgetState();
 }
 
-class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget>
+class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget> {
+  VideoPlayerController? _thumbController;
+  bool _isThumbInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initThumb();
+  }
+
+  Future<void> _initThumb() async {
+    final path = widget.message.videoPath;
+    if (path == null || !File(path).existsSync()) return;
+
+    final ctrl = VideoPlayerController.file(File(path));
+    await ctrl.initialize();
+    if (!mounted) {
+      ctrl.dispose();
+      return;
+    }
+    // Birinchi kadrni ko'rsatish uchun faqat init — play qilmaymiz
+    setState(() {
+      _thumbController = ctrl;
+      _isThumbInitialized = true;
+    });
+  }
+
+  @override
+  void dispose() {
+    _thumbController?.dispose();
+    super.dispose();
+  }
+
+  void _openFullScreen() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black87,
+        pageBuilder: (_, __, ___) => _FullScreenVideoPlayer(
+          videoPath: widget.message.videoPath!,
+          createdAt: widget.message.createdAt,
+        ),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
+    );
+  }
+
+  String _fmtTime(DateTime dt) =>
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final isMe = widget.message.isMe;
+    const smallSize = 100.0; // kichik preview
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 4.h),
+        child: Column(
+          crossAxisAlignment:
+          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            // Kichik dumaloq preview
+            GestureDetector(
+              onTap: () {
+                if (widget.message.videoPath != null) _openFullScreen();
+              },
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Video preview (birinchi kadr)
+                  ClipOval(
+                    child: SizedBox(
+                      width: smallSize,
+                      height: smallSize,
+                      child: _isThumbInitialized && _thumbController != null
+                          ? FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: _thumbController!.value.size.width,
+                          height: _thumbController!.value.size.height,
+                          child: VideoPlayer(_thumbController!),
+                        ),
+                      )
+                          : Container(
+                        color: Colors.black87,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Play overlay
+                  Container(
+                    width: smallSize,
+                    height: smallSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 4.h),
+
+            // Vaqt
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.videocam_outlined, size: 11, color: Colors.grey),
+                SizedBox(width: 3.w),
+                Text(
+                  _fmtTime(widget.message.createdAt),
+                  style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Full Screen Video Player ──────────────────────────────────────────────
+class _FullScreenVideoPlayer extends StatefulWidget {
+  final String videoPath;
+  final DateTime createdAt;
+
+  const _FullScreenVideoPlayer({
+    required this.videoPath,
+    required this.createdAt,
+  });
+
+  @override
+  State<_FullScreenVideoPlayer> createState() => _FullScreenVideoPlayerState();
+}
+
+class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer>
     with TickerProviderStateMixin {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _isPlaying = false;
   double _progress = 0.0;
+  bool _isSeeking = false;
+  bool _showControls = true;
 
-  // Pulse ring uchun (tashqi halqa)
   late final AnimationController _pulseCtrl;
-
-  // Avatar o'zi kattalashib-kichrayishi uchun
-  late final AnimationController _scaleCtrl;
-  late final Animation<double> _scaleAnim;
 
   @override
   void initState() {
     super.initState();
-
-    // Tashqi pulse halqa animatsiyasi
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
     );
-
-    // Avatar scale animatsiyasi: 1.0 → 1.12 → 1.0 (yumshoq)
-    _scaleCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 1.12).animate(
-      CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeOutBack),
-    );
-
     _initVideo();
   }
 
   Future<void> _initVideo() async {
-    final path = widget.message.videoPath;
-    if (path == null) return;
-
-    final file = File(path);
-    if (!file.existsSync()) {
-      debugPrint('Video fayl topilmadi: $path');
-      return;
-    }
+    final file = File(widget.videoPath);
+    if (!file.existsSync()) return;
 
     final ctrl = VideoPlayerController.file(file);
     await ctrl.initialize();
-
     if (!mounted) {
       ctrl.dispose();
       return;
     }
 
     ctrl.addListener(() {
-      if (!mounted) return;
-
-      final duration = ctrl.value.duration.inMilliseconds;
+      if (!mounted || _isSeeking) return;
+      final dur = ctrl.value.duration.inMilliseconds;
       final pos = ctrl.value.position.inMilliseconds;
       final playing = ctrl.value.isPlaying;
-      final newProgress = duration > 0 ? (pos / duration).clamp(0.0, 1.0) : 0.0;
+      final prog = dur > 0 ? (pos / dur).clamp(0.0, 1.0) : 0.0;
 
       setState(() {
         _isPlaying = playing;
-        _progress = newProgress;
+        _progress = prog;
       });
 
       if (playing) {
-        // Video o'ynayotganda: avatar kattalashadi + pulse ishlaydi
-        if (!_scaleCtrl.isCompleted) _scaleCtrl.forward();
         if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
       } else {
-        // Video to'xtaganda yoki tugaganda: avatar kichrayadi + pulse to'xtaydi
-        _scaleCtrl.reverse();
         _pulseCtrl.stop();
-
-        // Video oxiriga yetganda reset
-        if (newProgress >= 0.99) {
+        if (prog >= 0.99) {
           ctrl.seekTo(Duration.zero);
           setState(() => _progress = 0.0);
           _pulseCtrl.reset();
@@ -102,12 +225,13 @@ class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget>
       _controller = ctrl;
       _isInitialized = true;
     });
+    // Auto play ochilganda
+    await ctrl.play();
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
-    _scaleCtrl.dispose();
     _controller?.dispose();
     super.dispose();
   }
@@ -115,12 +239,24 @@ class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget>
   Future<void> _togglePlay() async {
     final ctrl = _controller;
     if (ctrl == null || !_isInitialized) return;
-
     if (ctrl.value.isPlaying) {
       await ctrl.pause();
     } else {
       await ctrl.play();
     }
+    setState(() => _showControls = true);
+  }
+
+  Future<void> _seekTo(double fraction) async {
+    final ctrl = _controller;
+    if (ctrl == null || !_isInitialized) return;
+    setState(() {
+      _isSeeking = true;
+      _progress = fraction;
+    });
+    await ctrl.seekTo(ctrl.value.duration * fraction);
+    setState(() => _isSeeking = false);
+    if (!ctrl.value.isPlaying) await ctrl.play();
   }
 
   String _fmt(Duration d) {
@@ -129,80 +265,70 @@ class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget>
     return '$m:${s.toString().padLeft(2, '0')}';
   }
 
-  String _fmtTime(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-
   @override
   Widget build(BuildContext context) {
-    final isMe = widget.message.isMe;
     final ctrl = _controller;
-    final size = 100.w;
+    final screenW = MediaQuery.of(context).size.width;
+    final bigSize = screenW * 0.82;
 
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 4.h),
-        child: Column(
-          crossAxisAlignment:
-          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: _togglePlay,
-              // ✅ Butun avatar scale animatsiyasi
-              child: AnimatedBuilder(
-                animation: _scaleAnim,
-                builder: (_, child) => Transform.scale(
-                  scale: _scaleAnim.value,
-                  child: child,
-                ),
-                child: SizedBox(
-                  width: size + 24.w,
-                  height: size + 24.w,
-                  child: Stack(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Center(
+          child: GestureDetector(
+            onTap: () => setState(() => _showControls = !_showControls),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Katta dumaloq video
+                AnimatedBuilder(
+                  animation: _pulseCtrl,
+                  builder: (_, child) => Stack(
                     alignment: Alignment.center,
                     children: [
-                      // ── Pulse ring (o'ynatilayotganda tashqarida yiltillab turadi)
-                      AnimatedBuilder(
-                        animation: _pulseCtrl,
-                        builder: (_, __) => Container(
-                          width: size + 18.w + _pulseCtrl.value * 6.w,
-                          height: size + 18.w + _pulseCtrl.value * 6.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.purple.withOpacity(
-                                0.5 * (1 - _pulseCtrl.value),
-                              ),
-                              width: 2.5,
+                      // Pulse ring
+                      Container(
+                        width: bigSize + 22 + _pulseCtrl.value * 8,
+                        height: bigSize + 22 + _pulseCtrl.value * 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.purple.withOpacity(
+                              0.5 * (1 - _pulseCtrl.value),
                             ),
+                            width: 2.5,
                           ),
                         ),
                       ),
 
-                      // ── Progress ring (doira bo'ylab progress)
+                      // Progress ring
                       SizedBox(
-                        width: size + 10.w,
-                        height: size + 10.w,
+                        width: bigSize + 12,
+                        height: bigSize + 12,
                         child: CircularProgressIndicator(
                           value: _progress,
-                          strokeWidth: 3.5,
+                          strokeWidth: 4.0,
                           backgroundColor: Colors.purple.withOpacity(0.15),
                           color: Colors.purple,
                         ),
                       ),
 
-                      // ── Video yoki loading
+                      // Video content
                       ClipOval(
                         child: SizedBox(
-                          width: size,
-                          height: size,
+                          width: bigSize,
+                          height: bigSize,
                           child: _isInitialized && ctrl != null
-                              ? FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                              width: ctrl.value.size.width,
-                              height: ctrl.value.size.height,
-                              child: VideoPlayer(ctrl),
+                              ? GestureDetector(
+                            onTap: _togglePlay,
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: ctrl.value.size.width,
+                                height: ctrl.value.size.height,
+                                child: VideoPlayer(ctrl),
+                              ),
                             ),
                           )
                               : Container(
@@ -217,50 +343,106 @@ class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget>
                         ),
                       ),
 
-                      // ── Play overlay (faqat pauza paytida)
-                      if (!_isPlaying)
-                        Container(
-                          width: size,
-                          height: size,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black.withOpacity(0.35),
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow_rounded,
-                            color: Colors.white,
-                            size: 42,
+                      // Controls overlay
+                      if (_showControls && _isInitialized)
+                        GestureDetector(
+                          onTap: _togglePlay,
+                          child: Container(
+                            width: bigSize,
+                            height: bigSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.3),
+                            ),
+                            child: Icon(
+                              _isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 64,
+                            ),
                           ),
                         ),
                     ],
                   ),
                 ),
-              ),
-            ),
 
-            // ── Duration va vaqt
-            Padding(
-              padding: EdgeInsets.only(top: 2.h),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.videocam_outlined, size: 11, color: Colors.grey),
-                  SizedBox(width: 3.w),
-                  Text(
-                    _isInitialized && ctrl != null
-                        ? _fmt(ctrl.value.duration)
-                        : '0:00',
-                    style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+                SizedBox(height: 16.h),
+
+                // Seek slider
+                if (_isInitialized && ctrl != null)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Column(
+                      children: [
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 3,
+                            thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 7),
+                            overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 14),
+                            activeTrackColor: Colors.purple,
+                            inactiveTrackColor: Colors.white30,
+                            thumbColor: Colors.white,
+                            overlayColor: Colors.purple.withOpacity(0.2),
+                          ),
+                          child: Slider(
+                            value: _progress,
+                            onChangeStart: (_) =>
+                                setState(() => _isSeeking = true),
+                            onChanged: (v) => setState(() => _progress = v),
+                            onChangeEnd: (v) => _seekTo(v),
+                          ),
+                        ),
+
+                        // Vaqt ko'rsatkichi
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _fmt(ctrl.value.position),
+                                style: TextStyle(
+                                    fontSize: 12.sp, color: Colors.white70),
+                              ),
+                              Text(
+                                _fmt(ctrl.value.duration),
+                                style: TextStyle(
+                                    fontSize: 12.sp, color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(width: 6.w),
-                  Text(
-                    _fmtTime(widget.message.createdAt),
-                    style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+
+                SizedBox(height: 12.h),
+
+                // Yopish tugmasi
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 20.w, vertical: 10.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    child: Text(
+                      'Yopish',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
