@@ -9,16 +9,12 @@ class ChatMessageWorker {
   final bool isMe;
   final MessageType type;
 
-  // Lokatsiya
   final double? latitude;
   final double? longitude;
 
-  // Ovozli xabar
   final String? audioPath;
-  final int? audioDuration; // sekundlarda
-  final List<double>? waveform; // to'lqin balandliklari
+  final int? audioDuration;
 
-  // Video xabar
   final String? videoPath;
 
   ChatMessageWorker({
@@ -31,13 +27,12 @@ class ChatMessageWorker {
     this.longitude,
     this.audioPath,
     this.audioDuration,
-    this.waveform,
     this.videoPath,
   });
 
-  bool get isLocation => type == MessageType.location;
+  bool get isLocation    => type == MessageType.location;
   bool get isProductCard => type == MessageType.productCard;
-  bool get isVoice => type == MessageType.voice;
+  bool get isVoice       => type == MessageType.voice;
   bool get isVoiceCircle => type == MessageType.voiceCircle;
   bool get isVideoCircle => type == MessageType.videoCircle;
 }

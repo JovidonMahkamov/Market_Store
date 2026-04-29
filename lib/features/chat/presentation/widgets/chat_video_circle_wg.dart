@@ -1,5 +1,3 @@
-// lib/features/chat/presentation/widgets/chat_video_circle_wg.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -150,8 +148,6 @@ class _ChatVideoCircleWidgetState extends State<ChatVideoCircleWidget> {
     );
   }
 }
-
-// ── Full Screen Video Player ──────────────────────────────────────────────
 class _FullScreenVideoPlayer extends StatefulWidget {
   final String videoPath;
   final DateTime createdAt;
